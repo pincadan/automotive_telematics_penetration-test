@@ -1,0 +1,90 @@
+#!/usr/bin/env python3
+# Project: Automotive Telematics Penetration Test
+# Author: [Your Name]
+# Description: Simulates internal penetration test against a telematics system
+
+import socket
+import ssl
+import requests
+import argparse
+import json
+from datetime import datetime
+
+class AutomotivePenTest:
+    def __init__(self, target_ip, target_port=8443):
+        self.target_ip = target_ip
+        self.target_port = target_port
+        self.session = requests.Session()
+        
+    def check_ssl(self):
+        """Verify SSL/TLS implementation"""
+        try:
+            context = ssl.create_default_context()
+            with socket.create_connection((self.target_ip, self.target_port)) as sock:
+                with context.wrap_socket(sock, server_hostname=self.target_ip) as ssock:
+                    cert = ssock.getpeercert()
+                    print(f"SSL Version: {ssock.version()}")
+                    print(f"Certificate Subject: {cert['subject']}")
+                    return True
+        except Exception as e:
+            print(f"SSL Check failed: {e}")
+            return False
+    
+    def test_api_endpoints(self):
+        """Test common API endpoints"""
+        endpoints = [
+            "/api/v1/vehicle/status",
+            "/api/v1/telemetry/data",
+            "/api/v1/security/auth"
+        ]
+        
+        results = {}
+        for endpoint in endpoints:
+            try:
+                response = self.session.get(
+                    f"https://{self.target_ip}:{self.target_port}{endpoint}",
+                    verify=False  # In real test, would use proper cert validation
+                )
+                results[endpoint] = {
+                    "status_code": response.status_code,
+                    "headers": dict(response.headers),
+                    "vulnerable": self._check_vulnerabilities(endpoint, response)
+                }
+            except Exception as e:
+                results[endpoint] = {"error": str(e)}
+        
+        return results
+    
+    def _check_vulnerabilities(self, endpoint, response):
+        """Check for specific vulnerabilities in responses"""
+        vulns = []
+        if "X-Frame-Options" not in response.headers:
+            vulns.append("Missing X-Frame-Options")
+        if "Content-Security-Policy" not in response.headers:
+            vulns.append("Missing Content-Security-Policy")
+        if "Cache-Control" not in response.headers:
+            vulns.append("Missing Cache-Control")
+            
+        # Check for sensitive data exposure
+        if "password" in response.text.lower():
+            vulns.append("Password exposure")
+            
+        return vulns
+
+def main():
+    parser = argparse.ArgumentParser(description="Automotive Telematics Penetration Test")
+    parser.add_argument("--target", required=True, help="Target IP address")
+    args = parser.parse_args()
+    
+    print(f"Starting penetration test against {args.target} at {datetime.now()}")
+    
+    ptest = AutomotivePenTest(args.target)
+    ptest.check_ssl()
+    results = ptest.test_api_endpoints()
+    
+    print("\nTest Results:")
+    for endpoint, result in results.items():
+        print(f"{endpoint}: {result}")
+
+if __name__ == "__main__":
+    main()
