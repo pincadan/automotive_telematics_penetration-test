@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Project: Automotive Telematics Penetration Test
-# Author: [Your Name]
+# Author: [Nvr@x 2026]
 # Description: Simulates internal penetration test against a telematics system
 
 import socket
