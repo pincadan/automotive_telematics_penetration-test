@@ -1,4 +1,4 @@
-#The project simulates an internal penetration test targeting an IoT vehicle telematics system.
+The project simulates an internal penetration test targeting an IoT vehicle telematics system.
 
 This script includes:
 - SSL/TLS verification
