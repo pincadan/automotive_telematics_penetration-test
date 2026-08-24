@@ -11,8 +11,9 @@ To enhance this for your portfolio:
 - Implement CI/CD integration
 - Create a web dashboard for reporting
 - Add custom exploit modules
-- For deployment, package it with:
 
+
+For deployment, package it with:
 - pip install -r requirements.txt
 - python automotive_pen_test.py --target 192.168.1.100
 
